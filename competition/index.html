@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OH-星闪智能复合机器人挑战赛 · 作品展示</title>
+  <style>
+    /* ─── 设计思路 ───────────────────────────────────────────
+       不做"手机壳套娃"，而是把整个页面本身就当作竞赛信息板：
+       左侧固定导航锚点 + 右侧内容流，像阅读一份有结构的技术报告。
+       色调选深蓝-青色-紫色系，贴合"鸿蒙 + 星闪"科技感，
+       但不用全黑背景，用浅灰底色保证可读性与答辩投影清晰度。
+    ──────────────────────────────────────────────────────── */
+
+    :root {
+      --bg:       #f0f4ff;
+      --surface:  #ffffff;
+      --border:   #dde3f5;
+      --ink:      #0f172a;
+      --muted:    #64748b;
+      --primary:  #3b5bdb;
+      --cyan:     #0ea5e9;
+      --purple:   #7c3aed;
+      --green:    #059669;
+      --amber:    #d97706;
+      --red:      #dc2626;
+      --sidebar-w: 220px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.7;
+    }
+
+    /* ── 顶部横幅 ── */
+    .banner {
+      background: linear-gradient(135deg, #1e3a8a 0%, #312e81 45%, #1e3a8a 100%);
+      color: #fff;
+      padding: 36px 48px 32px;
+      position: relative;
+      overflow: hidden;
+    }
+    .banner::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='rgba(255,255,255,.07)' stroke-width='1'%3E%3Ccircle cx='40' cy='40' r='35'/%3E%3Ccircle cx='40' cy='40' r='25'/%3E%3Ccircle cx='40' cy='40' r='15'/%3E%3C/g%3E%3C/svg%3E") repeat;
+      pointer-events: none;
+    }
+    .banner-inner { position: relative; z-index: 1; max-width: 960px; }
+    .banner-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+    .chip {
+      font-size: 12px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.35);
+      color: rgba(255,255,255,.9);
+      background: rgba(255,255,255,.1);
+      letter-spacing: .3px;
+    }
+    .banner h1 { font-size: 30px; font-weight: 800; letter-spacing: -.3px; line-height: 1.25; }
+    .banner h1 em { font-style: normal; color: #67e8f9; }
+    .banner p { margin-top: 10px; color: rgba(255,255,255,.75); font-size: 15px; max-width: 640px; }
+
+    .deadline-row {
+      display: flex; gap: 16px; flex-wrap: wrap; margin-top: 20px;
+    }
+    .deadline {
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.25);
+      border-radius: 12px;
+      padding: 10px 16px;
+      font-size: 13px;
+    }
+    .deadline .label { color: rgba(255,255,255,.65); font-size: 11px; text-transform: uppercase; letter-spacing: .5px; }
+    .deadline .val { font-weight: 700; font-size: 16px; margin-top: 2px; }
+    .deadline.hot { border-color: #fb923c; background: rgba(251,146,60,.15); }
+    .deadline.hot .val { color: #fb923c; }
+
+    /* ── 布局：侧边栏 + 正文 ── */
+    .layout {
+      display: flex;
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 32px 24px 64px;
+      gap: 32px;
+      align-items: flex-start;
+    }
+
+    /* ── 侧边导航 ── */
+    .sidebar {
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      position: sticky;
+      top: 24px;
+    }
+    .nav-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      padding-left: 12px;
+    }
+    .nav-list { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+    .nav-list a {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      text-decoration: none;
+      color: var(--muted);
+      transition: background .15s, color .15s;
+    }
+    .nav-list a:hover,
+    .nav-list a.active {
+      background: #e0e7ff;
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+    /* ── 主内容 ── */
+    .main { flex: 1; min-width: 0; }
+
+    /* ── 通用 section 卡片 ── */
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px 30px;
+      margin-bottom: 24px;
+    }
+    .section-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .section-icon {
+      width: 42px; height: 42px;
+      border-radius: 12px;
+      display: grid; place-items: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .section-icon.blue   { background: #eff6ff; }
+    .section-icon.green  { background: #ecfdf5; }
+    .section-icon.purple { background: #f5f3ff; }
+    .section-icon.amber  { background: #fffbeb; }
+    .section-icon.red    { background: #fef2f2; }
+    .section-head h2 { font-size: 18px; font-weight: 700; }
+    .section-head p  { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+    /* ── 模块卡片 (A/B/C) ── */
+    .modules { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+    .mod-card {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .mod-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(59,91,219,.12); }
+    .mod-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      opacity: .06;
+    }
+    .mod-card.a { border-color: #bfdbfe; }
+    .mod-card.a::before { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+    .mod-card.b { border-color: #c4b5fd; }
+    .mod-card.b::before { background: linear-gradient(135deg, #7c3aed, #6d28d9); }
+    .mod-card.c { border-color: #a7f3d0; }
+    .mod-card.c::before { background: linear-gradient(135deg, #059669, #047857); }
+    .mod-badge {
+      display: inline-flex;
+      align-items: center; justify-content: center;
+      width: 32px; height: 32px;
+      border-radius: 10px;
+      font-weight: 900; font-size: 15px;
+      margin-bottom: 10px;
+    }
+    .mod-card.a .mod-badge { background: #dbeafe; color: #1d4ed8; }
+    .mod-card.b .mod-badge { background: #ede9fe; color: #6d28d9; }
+    .mod-card.c .mod-badge { background: #d1fae5; color: #065f46; }
+    .mod-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+    .mod-card p  { font-size: 13px; color: var(--muted); line-height: 1.6; }
+    .mod-steps   { list-style: none; margin-top: 10px; display: flex; flex-direction: column; gap: 4px; }
+    .mod-steps li {
+      font-size: 12px; color: #475569;
+      padding: 4px 0;
+      border-top: 1px solid #f1f5f9;
+      display: flex; align-items: flex-start; gap: 6px;
+    }
+    .mod-steps li::before { content: "›"; font-weight: 700; color: var(--primary); }
+
+    /* ── 时间线 ── */
+    .timeline { display: flex; flex-direction: column; gap: 0; }
+    .tl-item {
+      display: flex;
+      gap: 16px;
+      padding: 14px 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .tl-item:last-child { border-bottom: none; }
+    .tl-dot-col { display: flex; flex-direction: column; align-items: center; padding-top: 4px; }
+    .tl-dot {
+      width: 14px; height: 14px; border-radius: 50%;
+      border: 2px solid var(--primary);
+      background: var(--surface);
+      flex-shrink: 0;
+    }
+    .tl-dot.done  { background: var(--green); border-color: var(--green); }
+    .tl-dot.hot   { background: var(--amber); border-color: var(--amber); box-shadow: 0 0 0 4px rgba(217,119,6,.2); }
+    .tl-dot.future{ background: var(--surface); border-color: #cbd5e1; }
+    .tl-line { flex: 1; width: 1px; background: #e2e8f0; margin-top: 4px; }
+    .tl-content { flex: 1; }
+    .tl-date {
+      font-size: 12px; color: var(--muted); font-weight: 600; letter-spacing: .3px;
+    }
+    .tl-title { font-size: 15px; font-weight: 700; margin-top: 2px; }
+    .tl-desc  { font-size: 13px; color: var(--muted); margin-top: 3px; line-height: 1.5; }
+
+    /* ── 提交清单 ── */
+    .checklist { display: flex; flex-direction: column; gap: 10px; }
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fafbff;
+    }
+    .check-box {
+      width: 22px; height: 22px; border-radius: 6px;
+      border: 2px solid #cbd5e1;
+      flex-shrink: 0; margin-top: 1px;
+      display: grid; place-items: center; font-size: 13px;
+    }
+    .check-box.done { background: var(--green); border-color: var(--green); color: #fff; }
+    .check-body .title { font-size: 14px; font-weight: 600; }
+    .check-body .desc  { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+    /* ── 视频区 ── */
+    .video-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+    .video-card {
+      border: 1px dashed #94a3b8;
+      border-radius: 14px;
+      padding: 20px 16px;
+      text-align: center;
+      background: #f8faff;
+      transition: border-color .2s, background .2s;
+    }
+    .video-card:hover { border-color: var(--primary); background: #eff6ff; }
+    .video-card .vnum { font-size: 28px; margin-bottom: 8px; }
+    .video-card h4   { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+    .video-card p    { font-size: 12px; color: var(--muted); line-height: 1.5; }
+    .video-badge {
+      display: inline-block; margin-top: 10px;
+      font-size: 11px; padding: 3px 10px; border-radius: 999px;
+      background: #fee2e2; color: #991b1b;
+    }
+
+    /* ── 丢分预警表 ── */
+    .risk-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .risk-table th {
+      text-align: left; padding: 10px 14px;
+      background: #f8faff; border-bottom: 2px solid var(--border);
+      font-size: 12px; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: .4px;
+    }
+    .risk-table td { padding: 12px 14px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+    .risk-table tr:last-child td { border-bottom: none; }
+    .risk-table tr:hover td { background: #fafbff; }
+    .risk-level {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; font-weight: 700; padding: 3px 9px;
+      border-radius: 999px;
+    }
+    .risk-level.high { background: #fee2e2; color: #991b1b; }
+    .risk-level.mid  { background: #fff7ed; color: #92400e; }
+    .risk-level.low  { background: #fefce8; color: #713f12; }
+
+    /* ── 响应式 ── */
+    @media (max-width: 768px) {
+      .banner { padding: 24px 20px 20px; }
+      .banner h1 { font-size: 22px; }
+      .layout { flex-direction: column; padding: 16px; }
+      .sidebar { width: 100%; position: static; }
+      .nav-list { flex-direction: row; flex-wrap: wrap; }
+      .section { padding: 18px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ─── 顶部横幅 ──────────────────────────── -->
+<header class="banner">
+  <div class="banner-inner">
+    <div class="banner-tags">
+      <span class="chip">2026 广东省大学生计算机设计大赛</span>
+      <span class="chip">OpenHarmony 6.0</span>
+      <span class="chip">DevEco Studio</span>
+      <span class="chip">预选赛 · 线上</span>
+    </div>
+    <h1>OH-星闪<em>智能复合机器人</em>挑战赛</h1>
+    <p>围绕开源鸿蒙系统、大模型与机器人应用技能，考核选手在多传感器融合、AI 深度学习及人机交互方向的综合应用能力。</p>
+
+    <div class="deadline-row">
+      <div class="deadline hot">
+        <div class="label">作品提交截止</div>
+        <div class="val">4 月 25 日</div>
+      </div>
+      <div class="deadline hot">
+        <div class="label">报名截止</div>
+        <div class="val">4 月 20 日</div>
+      </div>
+      <div class="deadline">
+        <div class="label">初赛评选</div>
+        <div class="val">5 月 11 日</div>
+      </div>
+      <div class="deadline">
+        <div class="label">决赛（暂定）</div>
+        <div class="val">6 月 15 日</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ─── 主布局 ──────────────────────────────── -->
+<div class="layout">
+
+  <!-- 侧边导航 -->
+  <nav class="sidebar" aria-label="页内导航">
+    <div class="nav-title">目录</div>
+    <ul class="nav-list">
+      <li><a href="#what" class="active"><span class="nav-icon">🎯</span>要做什么</a></li>
+      <li><a href="#how"><span class="nav-icon">🛠</span>怎么做</a></li>
+      <li><a href="#submit"><span class="nav-icon">📦</span>交什么</a></li>
+      <li><a href="#timeline"><span class="nav-icon">📅</span>什么时候交</a></li>
+      <li><a href="#risks"><span class="nav-icon">⚠️</span>容易丢分点</a></li>
+      <li><a href="#videos"><span class="nav-icon">🎬</span>视频展示</a></li>
+    </ul>
+  </nav>
+
+  <!-- 主内容 -->
+  <main class="main">
+
+    <!-- 1. 要做什么 -->
+    <section class="section" id="what">
+      <div class="section-head">
+        <div class="section-icon blue">🎯</div>
+        <div>
+          <h2>要做什么</h2>
+          <p>预选赛满分 100 分，本科组与高职组考核方式相同</p>
+        </div>
+      </div>
+      <div class="modules">
+        <div class="mod-card a">
+          <div class="mod-badge">A</div>
+          <h3>模块导入</h3>
+          <p>在基础工程中导入指定外部 API 模块</p>
+          <ul class="mod-steps">
+            <li>调用模块内部接口</li>
+            <li>工程可正常构建运行</li>
+          </ul>
+        </div>
+        <div class="mod-card b">
+          <div class="mod-badge">B</div>
+          <h3>应用界面设计</h3>
+          <p>在 DevEco Studio 中编写代码设计 UI</p>
+          <ul class="mod-steps">
+            <li>实现页面布局展示</li>
+            <li>按钮点击触发事件</li>
+          </ul>
+        </div>
+        <div class="mod-card c">
+          <div class="mod-badge">C</div>
+          <h3>数据解析</h3>
+          <p>输入指定数据并解析显示到页面</p>
+          <ul class="mod-steps">
+            <li>正确解析指定数据格式</li>
+            <li>各字段展示于页面中</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. 怎么做 -->
+    <section class="section" id="how">
+      <div class="section-head">
+        <div class="section-icon purple">🛠</div>
+        <div>
+          <h2>怎么做</h2>
+          <p>按照以下步骤完成三个模块的开发</p>
+        </div>
+      </div>
+
+      <div style="display:grid; gap:12px;">
+
+        <div style="padding:14px;border:1px solid #dde3f5;border-radius:12px;background:#fafbff;">
+          <div style="font-weight:700;font-size:14px;margin-bottom:6px;">① 环境准备</div>
+          <div style="font-size:13px;color:#475569;line-height:1.7;">
+            安装 <strong>DevEco Studio</strong>（最新版）→ 配置 OpenHarmony SDK 6.0 Beta1 及以上 →
+            下载组委会下发的<strong>参考源码包</strong>，在 IDE 中打开基础工程。
+          </div>
+        </div>
+
+        <div style="padding:14px;border:1px solid #bfdbfe;border-radius:12px;background:#eff6ff;">
+          <div style="font-weight:700;font-size:14px;color:#1d4ed8;margin-bottom:6px;">② 模块 A — 导入外部 API</div>
+          <div style="font-size:13px;color:#1e40af;line-height:1.7;">
+            打开 <code style="background:#dbeafe;padding:1px 5px;border-radius:4px;">oh-package.json5</code>，
+            添加指定依赖项 → 运行 <code style="background:#dbeafe;padding:1px 5px;border-radius:4px;">ohpm install</code> →
+            在代码中 import 对应接口 → <strong>确认构建通过（Build → Rebuild Project）</strong>。
+          </div>
+        </div>
+
+        <div style="padding:14px;border:1px solid #c4b5fd;border-radius:12px;background:#f5f3ff;">
+          <div style="font-weight:700;font-size:14px;color:#6d28d9;margin-bottom:6px;">③ 模块 B — 界面设计</div>
+          <div style="font-size:13px;color:#5b21b6;line-height:1.7;">
+            在 <code style="background:#ede9fe;padding:1px 5px;border-radius:4px;">.ets</code> 文件中编写
+            <code style="background:#ede9fe;padding:1px 5px;border-radius:4px;">@Component</code> →
+            使用 Column/Row/Text/Button 等组件构建布局 →
+            <strong>为按钮绑定 onClick 事件</strong>并验证响应逻辑。
+          </div>
+        </div>
+
+        <div style="padding:14px;border:1px solid #a7f3d0;border-radius:12px;background:#ecfdf5;">
+          <div style="font-weight:700;font-size:14px;color:#065f46;margin-bottom:6px;">④ 模块 C — 数据解析</div>
+          <div style="font-size:13px;color:#047857;line-height:1.7;">
+            接收组委会给定的<strong>指定格式数据</strong>（JSON / 字符串）→
+            用 <code style="background:#d1fae5;padding:1px 5px;border-radius:4px;">JSON.parse()</code> 或字符串处理逻辑解析 →
+            将各字段值绑定到页面 Text 组件显示。
+          </div>
+        </div>
+
+        <div style="padding:14px;border:1px solid #fcd34d;border-radius:12px;background:#fffbeb;">
+          <div style="font-weight:700;font-size:14px;color:#92400e;margin-bottom:6px;">⑤ 录制演示视频</div>
+          <div style="font-size:13px;color:#78350f;line-height:1.7;">
+            每个模块录制一段独立视频，<strong>单段时长 ≤ 2 分钟</strong>，
+            清晰展示功能运行效果。建议使用模拟器录屏，并打开扬声器做语言解说。
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 3. 交什么 -->
+    <section class="section" id="submit">
+      <div class="section-head">
+        <div class="section-icon green">📦</div>
+        <div>
+          <h2>交什么</h2>
+          <p>提交材料（电子版）共 5 项，缺一不可</p>
+        </div>
+      </div>
+      <div class="checklist">
+        <div class="check-item">
+          <div class="check-box done">✓</div>
+          <div class="check-body">
+            <div class="title">队伍基本信息</div>
+            <div class="desc">学校 / 学院名称、所有成员信息、作品名称</div>
+          </div>
+        </div>
+        <div class="check-item">
+          <div class="check-box"></div>
+          <div class="check-body">
+            <div class="title">演示视频 · 模块 A（≤ 2 分钟）</div>
+            <div class="desc">展示外部模块导入、接口调用、工程构建成功过程</div>
+          </div>
+        </div>
+        <div class="check-item">
+          <div class="check-box"></div>
+          <div class="check-body">
+            <div class="title">演示视频 · 模块 B（≤ 2 分钟）</div>
+            <div class="desc">展示界面布局、按钮交互、事件响应效果</div>
+          </div>
+        </div>
+        <div class="check-item">
+          <div class="check-box"></div>
+          <div class="check-body">
+            <div class="title">演示视频 · 模块 C（≤ 2 分钟）</div>
+            <div class="desc">展示数据输入、解析逻辑、页面字段展示效果</div>
+          </div>
+        </div>
+        <div class="check-item">
+          <div class="check-box"></div>
+          <div class="check-body">
+            <div class="title">完整源码包</div>
+            <div class="desc">包含模块 A / B / C 代码，可在全新环境中正常构建</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. 时间线 -->
+    <section class="section" id="timeline">
+      <div class="section-head">
+        <div class="section-icon amber">📅</div>
+        <div>
+          <h2>什么时候交</h2>
+          <p>关键时间节点一览</p>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-dot-col"><div class="tl-dot hot"></div><div class="tl-line"></div></div>
+          <div class="tl-content">
+            <div class="tl-date">2026 年 4 月 20 日</div>
+            <div class="tl-title">🔔 报名截止</div>
+            <div class="tl-desc">在广东省赛专报平台完成报名，逾期不予受理</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot-col"><div class="tl-dot hot"></div><div class="tl-line"></div></div>
+          <div class="tl-content">
+            <div class="tl-date">2026 年 4 月 25 日</div>
+            <div class="tl-title">📤 作品提交截止</div>
+            <div class="tl-desc">提交选手信息、3 个演示视频及源码包至平台；建议提前 2 天上传</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot-col"><div class="tl-dot"></div><div class="tl-line"></div></div>
+          <div class="tl-content">
+            <div class="tl-date">2026 年 5 月 11 日</div>
+            <div class="tl-title">🏆 初赛评选结果公布</div>
+            <div class="tl-desc">线上评审，公布晋级决赛名单</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot-col"><div class="tl-dot future"></div></div>
+          <div class="tl-content">
+            <div class="tl-date">2026 年 6 月 15 日（暂定）</div>
+            <div class="tl-title">🤖 决赛（线下）</div>
+            <div class="tl-desc">现场使用"OH-星闪智能复合机器人"完成综合任务，公开抽签确定场次</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. 丢分点 -->
+    <section class="section" id="risks">
+      <div class="section-head">
+        <div class="section-icon red">⚠️</div>
+        <div>
+          <h2>容易丢分点</h2>
+          <p>提交前逐项核查，避免低级失误</p>
+        </div>
+      </div>
+      <table class="risk-table">
+        <thead>
+          <tr>
+            <th>风险点</th>
+            <th>危险等级</th>
+            <th>应对方法</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>模块 A 构建失败</strong><br><span style="font-size:12px;color:#64748b;">依赖版本号写错或未执行 ohpm install</span></td>
+            <td><span class="risk-level high">● 高</span></td>
+            <td style="font-size:13px;">提交前 Rebuild Project，确认无 error 日志</td>
+          </tr>
+          <tr>
+            <td><strong>模块 B 页面空白</strong><br><span style="font-size:12px;color:#64748b;">组件未在 @Entry 页面注册，或 build() 结构不完整</span></td>
+            <td><span class="risk-level high">● 高</span></td>
+            <td style="font-size:13px;">在真机 / 模拟器上运行一次，录屏前确认界面可见</td>
+          </tr>
+          <tr>
+            <td><strong>模块 C 数据展示为空</strong><br><span style="font-size:12px;color:#64748b;">数据格式与组委会指定不一致，或解析未覆盖边界</span></td>
+            <td><span class="risk-level high">● 高</span></td>
+            <td style="font-size:13px;">用组委会提供的原始数据完整跑一遍，截图留存</td>
+          </tr>
+          <tr>
+            <td><strong>视频超过 2 分钟</strong><br><span style="font-size:12px;color:#64748b;">超时部分评委可能不予查看</span></td>
+            <td><span class="risk-level mid">● 中</span></td>
+            <td style="font-size:13px;">剪辑工具裁切后检查时长，控制在 1:50 以内更稳妥</td>
+          </tr>
+          <tr>
+            <td><strong>视频无声音 / 画质模糊</strong><br><span style="font-size:12px;color:#64748b;">评委无法判断操作步骤意图</span></td>
+            <td><span class="risk-level mid">● 中</span></td>
+            <td style="font-size:13px;">录制时开麦或加字幕，分辨率 ≥ 1080p</td>
+          </tr>
+          <tr>
+            <td><strong>队伍信息不完整</strong><br><span style="font-size:12px;color:#64748b;">缺学院名称 / 作品名 / 成员信息</span></td>
+            <td><span class="risk-level mid">● 中</span></td>
+            <td style="font-size:13px;">对照提交清单逐项填写，交叉验证</td>
+          </tr>
+          <tr>
+            <td><strong>源码依赖本地绝对路径</strong><br><span style="font-size:12px;color:#64748b;">评委环境中构建直接报错</span></td>
+            <td><span class="risk-level low">● 低</span></td>
+            <td style="font-size:13px;">用相对路径，提交前在全新目录中克隆后构建验证</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 6. 视频展示区 -->
+    <section class="section" id="videos">
+      <div class="section-head">
+        <div class="section-icon purple">🎬</div>
+        <div>
+          <h2>演示视频展示</h2>
+          <p>每段视频需清晰展示对应模块的完整运行效果</p>
+        </div>
+      </div>
+      <div class="video-grid">
+        <div class="video-card">
+          <div class="vnum">📹</div>
+          <h4>视频 1 · 模块 A</h4>
+          <p>外部 API 模块导入<br>接口调用 · 工程构建成功</p>
+          <span class="video-badge">≤ 2 分钟</span>
+        </div>
+        <div class="video-card">
+          <div class="vnum">📹</div>
+          <h4>视频 2 · 模块 B</h4>
+          <p>应用界面布局展示<br>按钮点击 · 事件响应</p>
+          <span class="video-badge">≤ 2 分钟</span>
+        </div>
+        <div class="video-card">
+          <div class="vnum">📹</div>
+          <h4>视频 3 · 模块 C</h4>
+          <p>指定数据输入解析<br>各字段展示于页面</p>
+          <span class="video-badge">≤ 2 分钟</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  // 滚动时高亮对应侧边导航项
+  const sections = document.querySelectorAll('.main .section');
+  const navLinks = document.querySelectorAll('.nav-list a');
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(a => a.classList.remove('active'));
+        const id = entry.target.id;
+        const link = document.querySelector(`.nav-list a[href="#${id}"]`);
+        if (link) link.classList.add('active');
+      }
+    });
+  }, { threshold: 0.4 });
+
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
