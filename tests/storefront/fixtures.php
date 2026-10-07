@@ -4,7 +4,7 @@ function dujiaoka_config_get($key, $default = null) {
     $settings = [
         'text_logo' => 'Wu 的小铺', 'title' => 'Wu 的小铺',
         'description' => 'FANBOX 980 / 480 · 号上直冲 / 文件发送 · GPT 日区充值',
-        'notice' => '<p>FANBOX 980 / 480 两档均支持号上直冲或文件发送。</p><p>此页是设计预览，未连接线上订单或支付。GPT 日区充值的价格与套餐待配置，不收集密码或验证码。</p>',
+        'notice' => '<p>FANBOX 980 / 480 两档均支持号上直冲或文件发送。</p><p>此页是设计预览，未连接线上订单或支付。GPT 日区充值展示价 ¥135，套餐周期待确认，不收集密码或验证码。</p>',
         'footer' => '',
     ];
     return $settings[$key] ?? $default;

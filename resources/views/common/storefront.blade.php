@@ -10,6 +10,10 @@ $featured = array_slice(array_values(array_filter($products, static function ($g
 $siteName = dujiaoka_config_get('text_logo') ?: dujiaoka_config_get('title', '数字小铺');
 $logo = dujiaoka_config_get('img_logo');
 $price = static function ($goods) { return number_format((float) $goods['actual_price'], 2, '.', ''); };
+$gptPrice = '135.00';
+foreach ($products as $product) {
+    if (!$product['_fanbox']) { $gptPrice = $price($product); break; }
+}
 ?>
 <!doctype html>
 <html lang="zh-CN">
@@ -53,7 +57,7 @@ $price = static function ($goods) { return number_format((float) $goods['actual_
                 <?php if ($goods['_fanbox'] && $goods['_cover']): ?><div class="fanbox-art"><img src="<?= $escape($goods['_cover']) ?>" alt="<?= $escape($goods['gd_name']) ?> 原方案配图"><span>FANBOX <b><?= preg_match('/\b(980|480)\b/', $goods['gd_name'], $plan) ? $plan[1] : 'PLAN' ?></b></span></div><?php else: ?>
                 <div class="card-art gpt-art" aria-hidden="true"><div class="art-orbit"></div><div class="art-card art-back"><span>JAPAN REGION</span><b>ChatGPT</b><small>YOUR NEXT IDEA</small></div><div class="art-card art-front"><span>ChatGPT <i class="japan-dot"></i></span><b>日区充值</b><small>JAPAN <span>↗</span></small></div></div>
                 <?php endif; ?>
-                <div class="feature-bottom"><?php if ($goods['_pending']): ?><span class="pending-price">价格待配置</span><span class="feature-cta">查看说明 <span>→</span></span><?php else: ?><span class="feature-price"><small>¥</small><?= $price($goods) ?></span><span class="feature-cta">选择交付 <span>→</span></span><?php endif; ?></div>
+                <div class="feature-bottom"><?php if ($goods['_pending']): ?><span class="feature-price"><small>¥</small><?= $price($goods) ?></span><span class="feature-cta">查看说明 <span>→</span></span><?php else: ?><span class="feature-price"><small>¥</small><?= $price($goods) ?></span><span class="feature-cta">选择交付 <span>→</span></span><?php endif; ?></div>
             </a>
         <?php endforeach; ?>
         </div>
@@ -71,7 +75,7 @@ $price = static function ($goods) { return number_format((float) $goods['actual_
                     <div class="product-top"><span class="product-icon icon-<?= $index % 4 ?>"><?php if ($goods['_cover']): ?><img src="<?= $escape($goods['_cover']) ?>" alt="" loading="lazy"><?php else: ?><span aria-hidden="true"><?= $goods['_fanbox'] ? 'F' : '✳' ?></span><?php endif; ?></span><span class="product-category"><?= $escape($goods['_category']) ?></span></div>
                     <h3><?= $escape($goods['gd_name']) ?></h3>
                     <div class="product-tags"><?php if ($goods['_fanbox']): ?><span class="delivery-tag">号上直冲</span><span>文件发送</span><?php else: ?><span class="delivery-tag">日本区</span><span>充值服务</span><?php endif; ?></div>
-                    <div class="product-bottom"><span class="product-price"><?php if ($goods['_pending']): ?><span class="pending-price">待配置</span><?php else: ?><small>¥</small><?= $price($goods) ?><?php endif; ?></span><span class="stock-state <?= $available ? '' : 'unavailable' ?>"><i></i><?= $goods['_pending'] ? '待上架' : ($available ? ((int) $goods['in_stock'] <= 3 ? '库存紧张' : '有库存') : '暂时售罄') ?></span></div>
+                    <div class="product-bottom"><span class="product-price"><small>¥</small><?= $price($goods) ?></span><span class="stock-state <?= $available ? '' : 'unavailable' ?>"><i></i><?= $goods['_pending'] ? '待上架' : ($available ? ((int) $goods['in_stock'] <= 3 ? '库存紧张' : '有库存') : '暂时售罄') ?></span></div>
                 <?php if ($available): ?></a><?php else: ?></div><?php endif; ?>
             </article>
         <?php endforeach; ?>
@@ -79,8 +83,8 @@ $price = static function ($goods) { return number_format((float) $goods['actual_
         <div class="empty-state" id="empty-state" <?= $products ? 'hidden' : '' ?>><span aria-hidden="true">⌕</span><h3><?= $products ? '没有找到相关商品' : '好物正在准备中' ?></h3><p><?= $products ? '换个关键词，或试试其他分类。' : '商品上架后会在这里显示，欢迎稍后再来。' ?></p><button type="button" id="reset-filters">重置筛选</button></div>
     </section>
     <section class="service-guide" id="guide" aria-labelledby="guide-title"><div class="section-heading"><div><p class="eyebrow">BEFORE YOU ORDER</p><h2 id="guide-title">FANBOX 购买流程<span class="heading-dot">.</span></h2></div></div><div class="guide-grid"><article><span>01</span><h3>选好档位</h3><p>980 与 480 两档。确认方案与交付范围后，再进入商品详情。</p></article><article><span>02</span><h3>选择交付</h3><p>号上直冲 / 文件发送均支持。直冲填写账号标识或主页链接；文件发送填写接收邮箱。</p></article><article><span>03</span><h3>核对订单</h3><p>核对金额与交付信息，按真实订单页提示付款。不收集账号密码或验证码。</p></article></div></section>
-    <section class="gpt-info" id="gpt-info" aria-labelledby="gpt-title"><div><p class="eyebrow">CHATGPT · JAPAN</p><h2 id="gpt-title">GPT 充值 · 日本区</h2><p>面向日区使用场景的充值方案。下单前请核对套餐、订阅周期、账号条件与交付方式。</p></div><div class="gpt-info-note"><strong>套餐与价格，以商品配置为准</strong><span>未配置的套餐暂不开放下单；不预设到账时效或服务承诺。</span></div></section>
-    <section class="fanbox-faq" aria-labelledby="faq-title"><p class="eyebrow">A LITTLE HELP</p><h2 id="faq-title">下单前，你可能想知道</h2><details><summary>980 和 480 都支持两种交付吗？</summary><p>支持。FANBOX 两档均可选择号上直冲或文件发送，具体范围以对应商品说明为准。</p></details><details><summary>号上直冲要提供密码吗？</summary><p>页面不收集账号密码或验证码。只填写账号标识或主页链接，后续按正式订单约定的方式完成交付。</p></details><details><summary>GPT 日区充值的套餐和价格是什么？</summary><p>套餐、周期与价格待商品配置确认后展示。下单前请先确认账号条件，未上架时不开放付款。</p></details></section>
+    <section class="gpt-info" id="gpt-info" aria-labelledby="gpt-title"><div><p class="eyebrow">CHATGPT · JAPAN</p><h2 id="gpt-title">GPT 充值 · 日本区</h2><p>面向日区使用场景的充值方案。下单前请核对套餐、订阅周期、账号条件与交付方式。</p></div><div class="gpt-info-note"><strong>GPT 日区充值 · ¥<?= $gptPrice ?></strong><span>套餐周期与交付细节待确认，正式下单以后台商品配置为准。</span></div></section>
+    <section class="fanbox-faq" aria-labelledby="faq-title"><p class="eyebrow">A LITTLE HELP</p><h2 id="faq-title">下单前，你可能想知道</h2><details><summary>980 和 480 都支持两种交付吗？</summary><p>支持。FANBOX 两档均可选择号上直冲或文件发送，具体范围以对应商品说明为准。</p></details><details><summary>号上直冲要提供密码吗？</summary><p>页面不收集账号密码或验证码。只填写账号标识或主页链接，后续按正式订单约定的方式完成交付。</p></details><details><summary>GPT 日区充值的套餐和价格是什么？</summary><p>展示价为 ¥<?= $gptPrice ?>。套餐周期与账号条件以商品说明为准，后台未上架时不开放付款。</p></details></section>
     <aside class="help-strip"><span class="help-symbol">✧</span><div><strong>购买之后，随时找回。</strong><p>使用下单邮箱或订单号，查询订单与交付信息。</p></div><a href="<?= $escape(url('order-search')) ?>">查询我的订单 <span>↗</span></a></aside>
     <footer class="site-footer"><div><span class="footer-brand"><?= $escape($siteName) ?></span><span>让数字生活，多一点美好。</span></div><div class="configured-footer"><?= dujiaoka_config_get('footer', '') ?></div><small>Powered by <a href="https://github.com/assimon/dujiaoka" rel="noopener noreferrer" target="_blank">独角数卡</a></small></footer>
 </main>

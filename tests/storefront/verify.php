@@ -18,10 +18,10 @@ check(strpos($html, 'fanbox-980.png') !== false && strpos($html, 'fanbox-480.png
 check(strpos($html, '号上直冲') !== false && strpos($html, '文件发送') !== false, 'Both FANBOX delivery descriptions retained');
 check(strpos($html, '库存紧张') !== false, 'Low stock reflects available inventory');
 check(strpos($html, 'href="/order-search"') !== false, 'Original order lookup route retained');
-check(strpos($html, '价格待配置') !== false && strpos($html, 'href="/buy/0"') === false, 'GPT draft has no invented price or purchase route');
+check(strpos($html, 'data-price="135.00"') !== false && strpos($html, 'href="/buy/0"') === false, 'GPT price is 135 and draft has no fake purchase route');
 check(strpos($html, '设计预览 ·') === false, 'Production view contains no fixture banner or fixture dependency');
 $empty = render_store(null);
-check(strpos($empty, 'href="/buy/') === false && strpos($empty, '待配置') !== false, 'Null database contains only a clearly marked non-purchasable GPT draft');
+check(strpos($empty, 'href="/buy/') === false && strpos($empty, 'data-price="135.00"') !== false, 'Null database contains only a clearly marked non-purchasable GPT draft');
 $mixed = storefront_fixtures();
 $mixed[] = ['id' => 5, 'gp_name' => '其他商品', 'goods' => [
     ['id' => 30, 'gd_name' => 'Notion 学习资源', 'actual_price' => 9, 'type' => 1, 'in_stock' => 50],

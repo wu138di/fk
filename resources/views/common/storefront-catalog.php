@@ -29,7 +29,7 @@ foreach ($data ?? [] as $group) {
 }
 // A requested new service can be shown as a draft, never as a purchasable fake SKU.
 if (!$hasJapanGpt) {
-    $draft = ['id' => 0, 'gd_name' => 'GPT 日区充值', 'actual_price' => null,
+    $draft = ['id' => 0, 'gd_name' => 'GPT 日区充值', 'actual_price' => 135,
         'in_stock' => 0, 'type' => 2, '_group' => 'gpt-jp-draft', '_category' => 'GPT · 日区',
         '_fanbox' => false, '_pending' => true, '_cover' => ''];
     $catalogProducts[] = $draft;
