@@ -48,6 +48,13 @@
         });
         [...cards]
             .sort((a, b) => {
+                if (
+                    sort.value !== "default" &&
+                    a.dataset.pending !== b.dataset.pending
+                )
+                    return (
+                        Number(a.dataset.pending) - Number(b.dataset.pending)
+                    );
                 if (sort.value === "price-asc")
                     return Number(a.dataset.price) - Number(b.dataset.price);
                 if (sort.value === "price-desc")

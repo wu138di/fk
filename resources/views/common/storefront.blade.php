@@ -1,17 +1,11 @@
 <?php
 // Shared home view for all existing themes. Checkout and order routes stay intact.
 $escape = static function ($value) { return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8'); };
-$groups = $data ?? [];
-$products = [];
-foreach ($groups as $group) {
-    foreach ($group['goods'] ?? [] as $goods) {
-        $goods['_group'] = (string) $group['id'];
-        $goods['_category'] = $group['gp_name'];
-        $products[] = $goods;
-    }
-}
+$catalog = require resource_path('views/common/storefront-catalog.php');
+$groups = $catalog['groups'];
+$products = $catalog['products'];
 $featured = array_slice(array_values(array_filter($products, static function ($goods) {
-    return (int) ($goods['in_stock'] ?? 0) > 0;
+    return (int) ($goods['in_stock'] ?? 0) > 0 || $goods['_pending'];
 })), 0, 3);
 $siteName = dujiaoka_config_get('text_logo') ?: dujiaoka_config_get('title', '数字小铺');
 $logo = dujiaoka_config_get('img_logo');
@@ -45,19 +39,21 @@ $price = static function ($goods) { return number_format((float) $goods['actual_
 <main class="store-shell">
     <?php if (!empty($previewMode)): ?><div class="preview-banner">设计预览 · 以下为演示商品，未连接线上数据库或支付</div><?php endif; ?>
     <section class="intro" aria-labelledby="intro-title">
-        <div><p class="eyebrow"><span class="status-dot"></span> YOUR EVERYDAY DIGITAL ESSENTIALS</p><h1 id="intro-title">数字生活，<span>轻松一点。</span></h1><p class="intro-copy">精选好用的数字商品，让每一份热爱都触手可及。</p></div>
-        <div class="intro-note"><span class="note-spark">✳</span><span>好东西，不必复杂。<small>发现 · 选择 · 即刻开启</small></span></div>
+        <div><p class="eyebrow"><span class="status-dot"></span> FANBOX & GPT JAPAN</p><h1 id="intro-title">喜欢的创作，<span>好好支持。</span></h1><p class="intro-copy">FANBOX 980 / 480 方案 · 号上直冲 / 文件发送<br>另有 GPT 日区充值，具体套餐以商品说明为准。</p></div>
+        <div class="intro-note"><span class="note-spark">✳</span><span>只留你需要的。<small>FANBOX · GPT 日区</small></span></div>
     </section>
     <?php if ($featured): ?>
     <section class="featured-section" aria-labelledby="featured-title">
-        <div class="section-heading"><div><p class="eyebrow">THE SELECTION</p><h2 id="featured-title">值得一看<span class="heading-dot">.</span></h2></div><a class="text-link" href="#products">探索全部商品 <span>↗</span></a></div>
+        <div class="section-heading"><div><p class="eyebrow">PICK YOUR PLAN</p><h2 id="featured-title">选一个，刚刚好<span class="heading-dot">.</span></h2></div><a class="text-link" href="#products">查看方案 <span>↗</span></a></div>
         <div class="featured-grid">
         <?php foreach ($featured as $index => $goods): ?>
-            <a class="feature-card tone-<?= $index ?>" href="<?= $escape(url('buy/' . (int) $goods['id'])) ?>">
+            <?php if (!$goods['_pending']): ?><a class="feature-card tone-<?= $index ?> <?= $goods['_fanbox'] ? 'fanbox-feature' : 'gpt-feature' ?>" href="<?= $escape(url('buy/' . (int) $goods['id'])) ?>"><?php else: ?><a class="feature-card tone-<?= $index ?> gpt-feature pending-feature" href="#gpt-info"><?php endif; ?>
                 <div class="feature-top"><span class="feature-category"><?= $escape($goods['_category']) ?></span><span class="round-arrow">↗</span></div>
-                <h3><?= $escape($goods['gd_name']) ?></h3><p class="feature-description"><?= (int) $goods['type'] === 1 ? '自动发货 · 支付后查看卡密' : '人工处理 · 具体时效见商品说明' ?></p>
-                <div class="card-art" aria-hidden="true"><div class="art-orbit"></div><div class="art-card art-back"><span>DIGITAL</span><b>Good things.</b><small>FOR YOUR EVERYDAY</small></div><div class="art-card art-front"><span><?= $escape($goods['_category']) ?></span><b><?= ['✳', '✧', '⌘'][$index] ?></b><small>MAKE IT YOURS <span>↗</span></small></div></div>
-                <div class="feature-bottom"><span class="feature-price"><small>¥</small><?= $price($goods) ?></span><span class="feature-cta">查看商品 <span>→</span></span></div>
+                <h3><?= $escape($goods['gd_name']) ?></h3><p class="feature-description"><?= $goods['_fanbox'] ? '号上直冲 / 文件发送 · 两种交付可选' : '日本区 · 充值方案 · 下单前确认套餐' ?></p>
+                <?php if ($goods['_fanbox'] && $goods['_cover']): ?><div class="fanbox-art"><img src="<?= $escape($goods['_cover']) ?>" alt="<?= $escape($goods['gd_name']) ?> 原方案配图"><span>FANBOX <b><?= preg_match('/\b(980|480)\b/', $goods['gd_name'], $plan) ? $plan[1] : 'PLAN' ?></b></span></div><?php else: ?>
+                <div class="card-art gpt-art" aria-hidden="true"><div class="art-orbit"></div><div class="art-card art-back"><span>JAPAN REGION</span><b>ChatGPT</b><small>YOUR NEXT IDEA</small></div><div class="art-card art-front"><span>ChatGPT <i class="japan-dot"></i></span><b>日区充值</b><small>JAPAN <span>↗</span></small></div></div>
+                <?php endif; ?>
+                <div class="feature-bottom"><?php if ($goods['_pending']): ?><span class="pending-price">价格待配置</span><span class="feature-cta">查看说明 <span>→</span></span><?php else: ?><span class="feature-price"><small>¥</small><?= $price($goods) ?></span><span class="feature-cta">选择交付 <span>→</span></span><?php endif; ?></div>
             </a>
         <?php endforeach; ?>
         </div>
@@ -69,19 +65,22 @@ $price = static function ($goods) { return number_format((float) $goods['actual_
         <div class="search-box"><span aria-hidden="true">⌕</span><input id="product-search" type="search" placeholder="搜索你想要的好物…" aria-label="搜索商品" autocomplete="off"><kbd>/</kbd></div></div>
         <div class="catalog-options"><label class="stock-filter"><input id="in-stock" type="checkbox"> 只看有货</label><label class="sort-label">排序 <select id="product-sort" aria-label="商品排序"><option value="default">默认推荐</option><option value="price-asc">价格从低到高</option><option value="price-desc">价格从高到低</option></select></label></div>
         <div class="product-grid" id="product-grid">
-        <?php foreach ($products as $index => $goods): $available = (int) ($goods['in_stock'] ?? 0) > 0; ?>
-            <article class="product-card <?= $available ? '' : 'sold-out' ?>" data-group="<?= $escape($goods['_group']) ?>" data-name="<?= $escape($goods['gd_name'] . ' ' . $goods['_category']) ?>" data-price="<?= $price($goods) ?>" data-stock="<?= $available ? '1' : '0' ?>" data-index="<?= $index ?>">
-                <?php if ($available): ?><a class="product-link" href="<?= $escape(url('buy/' . (int) $goods['id'])) ?>"><?php else: ?><div class="product-link" aria-label="<?= $escape($goods['gd_name']) ?>，暂时售罄"><?php endif; ?>
-                    <div class="product-top"><span class="product-icon icon-<?= $index % 4 ?>"><?php if (!empty($goods['picture'])): ?><img src="<?= $escape(picture_ulr($goods['picture'])) ?>" alt="" loading="lazy"><?php else: ?><span aria-hidden="true"><?= ['✳', '✧', '⌘', '◈'][$index % 4] ?></span><?php endif; ?></span><span class="product-category"><?= $escape($goods['_category']) ?></span></div>
+        <?php foreach ($products as $index => $goods): $available = !$goods['_pending'] && (int) ($goods['in_stock'] ?? 0) > 0; ?>
+            <article class="product-card <?= $available ? '' : 'sold-out' ?>" data-group="<?= $escape($goods['_group']) ?>" data-name="<?= $escape($goods['gd_name'] . ' ' . $goods['_category']) ?>" data-price="<?= $price($goods) ?>" data-pending="<?= $goods['_pending'] ? '1' : '0' ?>" data-stock="<?= $available ? '1' : '0' ?>" data-index="<?= $index ?>">
+                <?php if ($available): ?><a class="product-link" href="<?= $escape(url('buy/' . (int) $goods['id'])) ?>"><?php else: ?><div class="product-link" aria-label="<?= $escape($goods['gd_name']) ?>，<?= $goods['_pending'] ? '待上架' : '暂时售罄' ?>"><?php endif; ?>
+                    <div class="product-top"><span class="product-icon icon-<?= $index % 4 ?>"><?php if ($goods['_cover']): ?><img src="<?= $escape($goods['_cover']) ?>" alt="" loading="lazy"><?php else: ?><span aria-hidden="true"><?= $goods['_fanbox'] ? 'F' : '✳' ?></span><?php endif; ?></span><span class="product-category"><?= $escape($goods['_category']) ?></span></div>
                     <h3><?= $escape($goods['gd_name']) ?></h3>
-                    <div class="product-tags"><span class="delivery-tag"><?= (int) $goods['type'] === 1 ? '自动发货' : '人工处理' ?></span><span>游客可购</span></div>
-                    <div class="product-bottom"><span class="product-price"><small>¥</small><?= $price($goods) ?></span><span class="stock-state <?= $available ? '' : 'unavailable' ?>"><i></i><?= $available ? '有库存' : '暂时售罄' ?></span></div>
+                    <div class="product-tags"><?php if ($goods['_fanbox']): ?><span class="delivery-tag">号上直冲</span><span>文件发送</span><?php else: ?><span class="delivery-tag">日本区</span><span>充值服务</span><?php endif; ?></div>
+                    <div class="product-bottom"><span class="product-price"><?php if ($goods['_pending']): ?><span class="pending-price">待配置</span><?php else: ?><small>¥</small><?= $price($goods) ?><?php endif; ?></span><span class="stock-state <?= $available ? '' : 'unavailable' ?>"><i></i><?= $goods['_pending'] ? '待上架' : ($available ? ((int) $goods['in_stock'] <= 3 ? '库存紧张' : '有库存') : '暂时售罄') ?></span></div>
                 <?php if ($available): ?></a><?php else: ?></div><?php endif; ?>
             </article>
         <?php endforeach; ?>
         </div>
         <div class="empty-state" id="empty-state" <?= $products ? 'hidden' : '' ?>><span aria-hidden="true">⌕</span><h3><?= $products ? '没有找到相关商品' : '好物正在准备中' ?></h3><p><?= $products ? '换个关键词，或试试其他分类。' : '商品上架后会在这里显示，欢迎稍后再来。' ?></p><button type="button" id="reset-filters">重置筛选</button></div>
     </section>
+    <section class="service-guide" id="guide" aria-labelledby="guide-title"><div class="section-heading"><div><p class="eyebrow">BEFORE YOU ORDER</p><h2 id="guide-title">FANBOX 购买流程<span class="heading-dot">.</span></h2></div></div><div class="guide-grid"><article><span>01</span><h3>选好档位</h3><p>980 与 480 两档。确认方案与交付范围后，再进入商品详情。</p></article><article><span>02</span><h3>选择交付</h3><p>号上直冲 / 文件发送均支持。直冲填写账号标识或主页链接；文件发送填写接收邮箱。</p></article><article><span>03</span><h3>核对订单</h3><p>核对金额与交付信息，按真实订单页提示付款。不收集账号密码或验证码。</p></article></div></section>
+    <section class="gpt-info" id="gpt-info" aria-labelledby="gpt-title"><div><p class="eyebrow">CHATGPT · JAPAN</p><h2 id="gpt-title">GPT 充值 · 日本区</h2><p>面向日区使用场景的充值方案。下单前请核对套餐、订阅周期、账号条件与交付方式。</p></div><div class="gpt-info-note"><strong>套餐与价格，以商品配置为准</strong><span>未配置的套餐暂不开放下单；不预设到账时效或服务承诺。</span></div></section>
+    <section class="fanbox-faq" aria-labelledby="faq-title"><p class="eyebrow">A LITTLE HELP</p><h2 id="faq-title">下单前，你可能想知道</h2><details><summary>980 和 480 都支持两种交付吗？</summary><p>支持。FANBOX 两档均可选择号上直冲或文件发送，具体范围以对应商品说明为准。</p></details><details><summary>号上直冲要提供密码吗？</summary><p>页面不收集账号密码或验证码。只填写账号标识或主页链接，后续按正式订单约定的方式完成交付。</p></details><details><summary>GPT 日区充值的套餐和价格是什么？</summary><p>套餐、周期与价格待商品配置确认后展示。下单前请先确认账号条件，未上架时不开放付款。</p></details></section>
     <aside class="help-strip"><span class="help-symbol">✧</span><div><strong>购买之后，随时找回。</strong><p>使用下单邮箱或订单号，查询订单与交付信息。</p></div><a href="<?= $escape(url('order-search')) ?>">查询我的订单 <span>↗</span></a></aside>
     <footer class="site-footer"><div><span class="footer-brand"><?= $escape($siteName) ?></span><span>让数字生活，多一点美好。</span></div><div class="configured-footer"><?= dujiaoka_config_get('footer', '') ?></div><small>Powered by <a href="https://github.com/assimon/dujiaoka" rel="noopener noreferrer" target="_blank">独角数卡</a></small></footer>
 </main>
